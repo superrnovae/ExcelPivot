@@ -27,7 +27,8 @@ namespace ConsoleApp1
                 ColumnLabels = new Dictionary<string, DataConsolidateFunction>()
                 {
                     { "CA_NET", DataConsolidateFunction.SUM },
-                    { "CA_BRUT", DataConsolidateFunction.SUM }
+                    { "CA_BRUT", DataConsolidateFunction.SUM },
+                    { "QTE_VENDUE", DataConsolidateFunction.SUM }
                 },
                 RowLabels = new string[] { "PRODUCT", "MONTH" }
             };
@@ -119,8 +120,11 @@ namespace ConsoleApp1
 
             // Create dynamic table from existing one
             if (range_end != null && settings != null)
-                CreatePivotTable(workbook, sheet, table, settings);
-                
+            {
+                var pivotTable = CreatePivotTable(workbook, sheet, table, settings);
+                sheet.IsSelected = false;
+                workbook.SetActiveSheet(workbook.GetSheetIndex(pivotTable.GetParentSheet().SheetName));
+            }
 
             // Write the workbook to file
             using var fileWritter = new FileStream("test.xlsx", FileMode.Create, FileAccess.Write);
@@ -163,7 +167,7 @@ namespace ConsoleApp1
         }
 
 
-        private static void CreatePivotTable(IWorkbook workbook, XSSFSheet sheet, XSSFTable table, PivotSettings settings)
+        private static XSSFPivotTable CreatePivotTable(IWorkbook workbook, XSSFSheet sheet, XSSFTable table, PivotSettings settings)
         {
             var startReference = new CellReference(table.StartRowIndex, table.StartColIndex);
             var endReference = new CellReference(table.EndRowIndex, table.EndColIndex);
@@ -187,6 +191,8 @@ namespace ConsoleApp1
                 if (ix != -1)
                     pivotTable.AddColumnLabel(settings.ColumnLabels[item], ix, item);
             }
+
+            return pivotTable;
         }
 
 
@@ -204,6 +210,7 @@ namespace ConsoleApp1
                     obj.MONTH = "2022-" + i.ToString();
                     obj.CA_NET = new Random().Next(10000);
                     obj.CA_BRUT = new Random().Next(10000);
+                    obj.QTE_VENDUE = new Random().Next(100);
 
                     yield return obj;
                 }
@@ -224,6 +231,7 @@ namespace ConsoleApp1
         public string MONTH { get; set; }
         public int CA_NET { get; set; }
         public int CA_BRUT { get; set;}
+        public int QTE_VENDUE { get; set; }
     }
 }
 
