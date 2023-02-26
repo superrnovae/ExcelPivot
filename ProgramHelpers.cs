@@ -1,43 +1,41 @@
-﻿using ConsoleApp1;
-using NPOI.SS.Util;
+﻿using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
 
-public static class ProgramHelpers
+namespace ConsoleApp1
 {
-
-    public static XSSFPivotTable Pivot(this XSSFTable table, PivotSettings settings)
+    public static class ProgramHelpers
     {
-        var startReference = new CellReference(table.StartRowIndex, table.StartColIndex);
-        var endReference = new CellReference(table.EndRowIndex, table.EndColIndex);
-        var range = new AreaReference(startReference, endReference);
-
-        var pivotTablePosition = new CellReference(0, 0);
-
-        var sourceSheet = table.GetXSSFSheet();
-        var workbook = sourceSheet.Workbook;
-
-        var pivotSheet = workbook.CreateSheet() as XSSFSheet;
-
-        XSSFPivotTable pivotTable = pivotSheet.CreatePivotTable(range, new CellReference(0, 0), sourceSheet);
-
-        foreach (var item in settings.RowLabels)
+        public static XSSFPivotTable Pivot(this XSSFTable table, PivotSettings settings)
         {
-            int ix = table.FindColumnIndex(item);
+            var startReference = new CellReference(table.StartRowIndex, table.StartColIndex);
+            var endReference = new CellReference(table.EndRowIndex, table.EndColIndex);
+            var range = new AreaReference(startReference, endReference);
 
-            if (ix == -1) continue;
+            var sourceSheet = table.GetXSSFSheet();
+            var workbook = sourceSheet.Workbook;
+            var pivotSheet = workbook.CreateSheet() as XSSFSheet;
 
-            pivotTable.AddRowLabel(ix);
+            XSSFPivotTable pivotTable = pivotSheet.CreatePivotTable(range, new CellReference(0, 0), sourceSheet);
+
+            foreach (var item in settings.RowLabels)
+            {
+                int ix = table.FindColumnIndex(item);
+
+                if (ix == -1) continue;
+
+                pivotTable.AddRowLabel(ix);
+            }
+
+            foreach (var item in settings.ColumnLabels.Keys)
+            {
+                int ix = table.FindColumnIndex(item);
+
+                if (ix == -1) continue;
+
+                pivotTable.AddColumnLabel(settings.ColumnLabels[item], ix, item);
+            }
+
+            return pivotTable;
         }
-
-        foreach (var item in settings.ColumnLabels.Keys)
-        {
-            int ix = table.FindColumnIndex(item);
-
-            if (ix == -1) continue;
-
-            pivotTable.AddColumnLabel(settings.ColumnLabels[item], ix, item);
-        }
-
-        return pivotTable;
     }
 }
